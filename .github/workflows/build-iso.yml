@@ -1,0 +1,85 @@
+name: Build Hyprose ISO
+
+on:
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag (e.g., 2026.05.16)'
+        required: true
+        default: 'rolling'
+
+  # Weekly automated build (Sundays at 00:00 UTC)
+  schedule:
+    - cron: '0 0 * * 0'
+
+  # On push to main (for testing)
+  push:
+    branches: [ main ]
+    paths:
+      - 'hyprose/**'
+      - '.github/workflows/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+      options: --privileged
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare Arch Linux build environment
+        run: |
+          echo "[multilib]" >> /etc/pacman.conf
+          echo "Include = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm archiso git sudo base-devel
+
+      - name: Build ISO
+        run: |
+          cd hyprose
+          mkarchiso -v -w /tmp/hyprose-work .
+
+      - name: Rename and checksum ISO
+        run: |
+          cd hyprose/out
+          ISO=$(ls *.iso | head -1)
+          TAG="${{ github.event.inputs.release_tag || 'rolling' }}"
+          NEW_NAME="hyprose-${TAG}-x86_64.iso"
+          mv "$ISO" "$NEW_NAME"
+          sha256sum "$NEW_NAME" > "${NEW_NAME}.sha256"
+          echo "ISO_NAME=$NEW_NAME" >> $GITHUB_ENV
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hyprose-iso
+          path: hyprose/out/*.iso
+          retention-days: 7
+
+      - name: Create Release (if tagged)
+        if: github.event.inputs.release_tag != ''
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.release_tag }}
+          name: Hyprose ${{ github.event.inputs.release_tag }}
+          body: |
+            🌹 Hyprose ${{ github.event.inputs.release_tag }}
+
+            **What's included:**
+            - Arch Linux base (latest)
+            - Hyprland + end-4 dots-hyprland
+            - Quickshell widgets
+            - Material You dynamic theming
+            - AI sidebar (Gemini, Ollama ready)
+            - Calamares GUI installer
+
+            **SHA256:** See `.sha256` file
+          files: |
+            hyprose/out/*.iso
+            hyprose/out/*.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

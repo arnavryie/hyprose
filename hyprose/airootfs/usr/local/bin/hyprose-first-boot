@@ -1,0 +1,18 @@
+#!/bin/bash
+# Hyprose First Boot — runs once after installation
+
+USER=$(ls /home | head -1)
+
+# Generate colors from wallpaper
+if [ -x "/home/${USER}/.config/hypr/scripts/wallpaper.sh" ]; then
+    su - "${USER}" -c "~/.config/hypr/scripts/wallpaper.sh" || true
+fi
+
+# Welcome notification
+if command -v notify-send &>/dev/null; then
+    su - "${USER}" -c "notify-send 'Welcome to Hyprose!' 'Your Hyprland rice is ready. Press Super+/ for keybinds.'" || true
+fi
+
+# Disable this service
+systemctl disable hyprose-first-boot.service
+rm -f /etc/systemd/system/hyprose-first-boot.service

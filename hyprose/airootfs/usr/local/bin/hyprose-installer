@@ -1,0 +1,374 @@
+#!/bin/bash
+# Hyprose Installer
+# Graphical installer using dialog/whiptail or zenity for Hyprland live session
+
+set -e
+
+# Colors for terminal output (fallback)
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+# Check if running as root
+if [ "$EUID" -ne 0 ]; then 
+    echo -e "${RED}Please run as root (use sudo)${NC}"
+    exit 1
+fi
+
+# Detect if we're in a graphical environment
+HAS_GUI=false
+if [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ]; then
+    HAS_GUI=true
+fi
+
+# Logging
+LOG_FILE="/tmp/hyprose-install.log"
+exec 1> >(tee -a "$LOG_FILE")
+exec 2>&1
+
+echo -e "${CYAN}═══════════════════════════════════════${NC}"
+echo -e "${CYAN}     🌹  Hyprose Installer  🌹${NC}"
+echo -e "${CYAN}═══════════════════════════════════════${NC}"
+echo ""
+
+# ============================================================
+# WELCOME
+# ============================================================
+if [ "$HAS_GUI" = true ] && command -v zenity &>/dev/null; then
+    zenity --info --title="Welcome to Hyprose" --text="<big>🌹 Welcome to Hyprose Installer</big>\n\nThis will install Hyprose (Arch Linux + Hyprland + end-4 dots) to your system.\n\n<b>Warning:</b> This will erase data on the selected disk." --width=400 || exit 0
+else
+    echo -e "${YELLOW}Welcome to Hyprose Installer${NC}"
+    echo "This will install Hyprose to your system."
+    echo -e "${RED}WARNING: This will erase data on the selected disk.${NC}"
+    read -p "Press Enter to continue or Ctrl+C to cancel..."
+fi
+
+# ============================================================
+# KEYBOARD LAYOUT
+# ============================================================
+if [ "$HAS_GUI" = true ] && command -v zenity &>/dev/null; then
+    KEYMAP=$(zenity --list --title="Keyboard Layout" --text="Select your keyboard layout:" --column="Layout" us uk de fr es it ru br jp cn --width=300 --height=400)
+else
+    echo ""
+    echo "Available keymaps: us, uk, de, fr, es, it, ru, br, jp, cn"
+    read -p "Enter keyboard layout [us]: " KEYMAP
+    KEYMAP=${KEYMAP:-us}
+fi
+
+# ============================================================
+# DISK SELECTION
+# ============================================================
+DISKS=$(lsblk -dpno NAME,SIZE,MODEL | grep -E "^/dev/(sd|nvme|vd|hd)")
+
+if [ "$HAS_GUI" = true ] && command -v zenity &>/dev/null; then
+    DISK=$(echo "$DISKS" | zenity --list --title="Select Disk" --text="Select the disk to install Hyprose on:" --column="Disk" --column="Size" --column="Model" --width=500 --height=300)
+else
+    echo ""
+    echo "Available disks:"
+    echo "$DISKS"
+    echo ""
+    read -p "Enter disk to install on (e.g., /dev/sda): " DISK
+fi
+
+if [ -z "$DISK" ] || [ ! -b "$DISK" ]; then
+    echo -e "${RED}Invalid disk selected${NC}"
+    exit 1
+fi
+
+# ============================================================
+# CONFIRM ERASE
+# ============================================================
+if [ "$HAS_GUI" = true ] && command -v zenity &>/dev/null; then
+    zenity --question --title="Confirm" --text="<b>ALL DATA ON $DISK WILL BE ERASED!</b>\n\nAre you sure you want to continue?" --width=300 || exit 0
+else
+    echo ""
+    echo -e "${RED}ALL DATA ON $DISK WILL BE ERASED!${NC}"
+    read -p "Type 'yes' to confirm: " CONFIRM
+    if [ "$CONFIRM" != "yes" ]; then
+        echo "Installation cancelled."
+        exit 1
+    fi
+fi
+
+# ============================================================
+# PARTITIONING (Simple: EFI + Root + Swap)
+# ============================================================
+echo -e "${CYAN}Partitioning $DISK...${NC}"
+
+# Wipe disk
+wipefs -af "$DISK"
+parted -s "$DISK" mklabel gpt
+
+# Create partitions
+parted -s "$DISK" mkpart ESP fat32 1MiB 512MiB
+parted -s "$DISK" set 1 esp on
+parted -s "$DISK" mkpart primary linux-swap 512MiB 4.5GiB
+parted -s "$DISK" mkpart primary ext4 4.5GiB 100%
+
+# Format partitions
+mkfs.fat -F32 "${DISK}1"
+mkswap "${DISK}2"
+mkfs.ext4 "${DISK}3"
+
+# Mount
+mount "${DISK}3" /mnt
+mkdir -p /mnt/boot/efi
+mount "${DISK}1" /mnt/boot/efi
+swapon "${DISK}2"
+
+# ============================================================
+# HOSTNAME & USER
+# ============================================================
+if [ "$HAS_GUI" = true ] && command -v zenity &>/dev/null; then
+    HOSTNAME=$(zenity --entry --title="Hostname" --text="Enter hostname:" --entry-text="hyprose")
+    USERNAME=$(zenity --entry --title="Username" --text="Enter your username:" --entry-text="user")
+    USERPASS=$(zenity --password --title="User Password" --text="Enter password for $USERNAME:")
+    ROOTPASS=$(zenity --password --title="Root Password" --text="Enter root password:")
+else
+    read -p "Enter hostname [hyprose]: " HOSTNAME
+    HOSTNAME=${HOSTNAME:-hyprose}
+    read -p "Enter username: " USERNAME
+    read -sp "Enter password for $USERNAME: " USERPASS
+    echo ""
+    read -sp "Enter root password: " ROOTPASS
+    echo ""
+fi
+
+# ============================================================
+# INSTALL BASE SYSTEM
+# ============================================================
+echo -e "${CYAN}Installing base system...${NC}"
+
+# Use same mirror as live session
+cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
+
+# Bootstrap
+pacstrap /mnt base base-devel linux linux-firmware linux-headers     grub efibootmgr os-prober     networkmanager network-manager-applet wireless_tools wpa_supplicant iwd     bluez bluez-utils     pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber pamixer     polkit seatd
+
+# Generate fstab
+genfstab -U /mnt >> /mnt/etc/fstab
+
+# ============================================================
+# CHROOT CONFIGURATION
+# ============================================================
+echo -e "${CYAN}Configuring system...${NC}"
+
+arch-chroot /mnt /bin/bash <<CHROOT_EOF
+# Set timezone (auto-detect or default)
+ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+hwclock --systohc
+
+# Locale
+sed -i 's/#en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
+locale-gen
+echo "LANG=en_US.UTF-8" > /etc/locale.conf
+
+# Keymap
+echo "KEYMAP=$KEYMAP" > /etc/vconsole.conf
+
+# Hostname
+echo "$HOSTNAME" > /etc/hostname
+cat > /etc/hosts <<EOF
+127.0.0.1   localhost
+::1         localhost
+127.0.1.1   $HOSTNAME.localdomain $HOSTNAME
+EOF
+
+# Users
+echo "root:$ROOTPASS" | chpasswd
+useradd -m -G wheel,audio,video,power,storage,input,bluetooth,network,adm -s /bin/bash "$USERNAME"
+echo "$USERNAME:$USERPASS" | chpasswd
+
+# Sudo
+sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
+
+# Enable services
+systemctl enable NetworkManager
+systemctl enable bluetooth
+systemctl enable fstrim.timer
+systemctl enable paccache.timer
+
+# GRUB
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=HYPROSE
+grub-mkconfig -o /boot/grub/grub.cfg
+
+# Install Chaotic AUR keyring and mirrorlist
+pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com
+pacman-key --lsign-key 3056513887B78AEB
+pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst'
+pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst'
+
+# Add chaotic-aur to pacman.conf
+if ! grep -q "chaotic-aur" /etc/pacman.conf; then
+    cat >> /etc/pacman.conf <<'PACMAN'
+
+[chaotic-aur]
+Include = /etc/pacman.d/chaotic-mirrorlist
+PACMAN
+fi
+
+pacman -Sy
+CHROOT_EOF
+
+# ============================================================
+# INSTALL HYPRLAND + DOTFILES
+# ============================================================
+echo -e "${CYAN}Installing Hyprland ecosystem...${NC}"
+
+arch-chroot /mnt /bin/bash <<CHROOT_EOF
+# Install Hyprland and dependencies
+pacman -S --noconfirm hyprland hyprcursor hyprutils hyprgraphics hyprlang hypridle hyprlock hyprpaper xdg-desktop-portal-hyprland
+
+# Install Quickshell and Qt6
+pacman -S --noconfirm quickshell qt6-base qt6-declarative qt6-wayland qt6-5compat qt6-svg qt6-multimedia qt6-charts qt6-graphs qt6-quick3d
+
+# Terminal, launcher, utilities
+pacman -S --noconfirm kitty fish zsh fuzzel wlogout mako libnotify nautilus nautilus-open-any-terminal
+
+# Theming
+pacman -S --noconfirm ttf-jetbrains-mono-nerd ttf-space-mono-nerd bibata-cursor-theme papirus-icon-theme adw-gtk-theme nwg-look
+pacman -S --noconfirm gtk3 gtk4 qt5ct qt6ct kvantum kvantum-qt5
+
+# Media & Python
+pacman -S --noconfirm imagemagick ffmpeg ffmpegthumbnailer
+pacman -S --noconfirm python python-pip python-gobject python-materialyoucolor python-pillow python-pywalfox python-requests
+pacman -S --noconfirm python-numpy python-scipy python-pyaudio python-gtts python-pytesseract python-pyperclip
+pacman -S --noconfirm python-screeninfo python-setproctitle python-tqdm python-watchdog python-psutil
+
+# AUR helpers
+pacman -S --noconfirm yay paru
+
+# Install end-4 dots as the new user
+su - "$USERNAME" -c "
+    cd /tmp
+    git clone --depth 1 https://github.com/end-4/dots-hyprland.git
+    cd dots-hyprland
+    export II_TRANSPARENT=1
+    ./setup.sh install
+"
+
+# Set up wallpapers for new user
+mkdir -p /home/$USERNAME/Wallpapers
+if [ -d /usr/local/share/backgrounds/hyprose ]; then
+    cp /usr/local/share/backgrounds/hyprose/* /home/$USERNAME/Wallpapers/ 2>/dev/null || true
+fi
+
+# Fix permissions
+chown -R $USERNAME:$USERNAME /home/$USERNAME
+
+# Enable SDDM or keep TTY autostart
+# For Hyprose, we use TTY autostart like the live session
+cat > /home/$USERNAME/.bash_profile <<'BASH'
+if [ -z "\$DISPLAY" ] && [ "\$(tty)" = "/dev/tty1" ]; then
+    export XDG_SESSION_TYPE=wayland
+    export XDG_CURRENT_DESKTOP=Hyprland
+    export XDG_SESSION_DESKTOP=Hyprland
+    export MOZ_ENABLE_WAYLAND=1
+    export QT_QPA_PLATFORM=wayland
+    exec Hyprland
+fi
+BASH
+chown $USERNAME:$USERNAME /home/$USERNAME/.bash_profile
+
+# Also add to fish config
+mkdir -p /home/$USERNAME/.config/fish
+chown -R $USERNAME:$USERNAME /home/$USERNAME/.config
+CHROOT_EOF
+
+# ============================================================
+# GPU DRIVER DETECTION & INSTALL
+# ============================================================
+echo -e "${CYAN}Detecting GPU...${NC}"
+
+arch-chroot /mnt /bin/bash <<CHROOT_EOF
+GPU_INFO=$(lspci | grep -i vga)
+
+if echo "\$GPU_INFO" | grep -qi nvidia; then
+    echo "NVIDIA GPU detected. Installing proprietary drivers..."
+    pacman -S --noconfirm nvidia-dkms nvidia-utils nvidia-settings
+    # Add kernel parameter for NVIDIA
+    sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="nvidia-drm.modeset=1 /' /etc/default/grub
+    grub-mkconfig -o /boot/grub/grub.cfg
+elif echo "\$GPU_INFO" | grep -qi amd; then
+    echo "AMD GPU detected. Mesa drivers already included."
+    pacman -S --noconfirm mesa vulkan-radeon libva-mesa-driver
+elif echo "\$GPU_INFO" | grep -qi intel; then
+    echo "Intel GPU detected."
+    pacman -S --noconfirm mesa vulkan-intel intel-media-driver
+fi
+CHROOT_EOF
+
+# ============================================================
+# FIRST BOOT SETUP
+# ============================================================
+cat > /mnt/usr/local/bin/hyprose-first-boot <<'FIRSTBOOT'
+#!/bin/bash
+# Hyprose First Boot Configuration
+# Runs once after installation
+
+USER=$(logname 2>/dev/null || echo "$SUDO_USER")
+if [ -z "$USER" ]; then
+    USER=$(ls /home | head -1)
+fi
+
+# Run end-4's color generation
+if [ -x /home/"$USER"/.config/hypr/scripts/wallpaper.sh ]; then
+    su - "$USER" -c "~/.config/hypr/scripts/wallpaper.sh"
+fi
+
+# Welcome notification
+if command -v notify-send &>/dev/null; then
+    su - "$USER" -c "notify-send 'Welcome to Hyprose!' 'Your Hyprland rice is ready. Press Super+/ for keybinds.'"
+fi
+
+# Remove first-boot service
+systemctl disable hyprose-first-boot.service
+rm -f /etc/systemd/system/hyprose-first-boot.service
+FIRSTBOOT
+
+chmod +x /mnt/usr/local/bin/hyprose-first-boot
+
+# First boot service
+cat > /mnt/etc/systemd/system/hyprose-first-boot.service <<'SERVICE'
+[Unit]
+Description=Hyprose First Boot Setup
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/hyprose-first-boot
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+SERVICE
+
+arch-chroot /mnt systemctl enable hyprose-first-boot.service
+
+# ============================================================
+# CLEANUP & FINISH
+# ============================================================
+echo -e "${CYAN}Cleaning up...${NC}"
+umount -R /mnt
+swapoff -a
+
+echo ""
+echo -e "${GREEN}═══════════════════════════════════════${NC}"
+echo -e "${GREEN}     🌹  Hyprose Installed!  🌹${NC}"
+echo -e "${GREEN}═══════════════════════════════════════${NC}"
+echo ""
+echo -e "${GREEN}Installation complete!${NC}"
+echo "Remove the USB drive and reboot."
+echo ""
+echo "First boot will:"
+echo "  - Generate colors from wallpaper"
+echo "  - Set up the full end-4 rice"
+echo ""
+echo "Keybinds: Super+/ for help"
+echo ""
+
+if [ "$HAS_GUI" = true ] && command -v zenity &>/dev/null; then
+    zenity --info --title="Installation Complete" --text="<big>🌹 Hyprose Installed!</big>\n\nRemove the USB drive and reboot.\n\nFirst boot will finalize your rice setup.\n\n<b>Keybinds:</b> Super+/ for help" --width=350
+fi

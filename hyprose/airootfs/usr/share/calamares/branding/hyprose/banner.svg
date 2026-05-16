@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="120" viewBox="0 0 1024 120">
+  <defs>
+    <linearGradient id="banner" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0f0f1a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="120" fill="url(#banner)"/>
+  <text x="512" y="75" font-size="48" text-anchor="middle" fill="#ff6b9d" font-family="monospace">🌹 Hyprose Installer</text>
+</svg>

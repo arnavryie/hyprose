@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Install Hyprose
+Comment=Install Hyprose to your system
+Exec=sudo calamares
+Icon=system-software-install
+Type=Application
+Terminal=false
+Categories=System;

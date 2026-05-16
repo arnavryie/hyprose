@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0f1a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="rose" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b9d;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff8fab;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="400" fill="url(#bg)"/>
+  <text x="400" y="160" font-size="64" text-anchor="middle" fill="url(#rose)" font-family="monospace">🌹 Hyprose</text>
+  <text x="400" y="220" font-size="24" text-anchor="middle" fill="#e8e8e8" font-family="monospace">Arch Linux + Hyprland + end-4 dots</text>
+  <text x="400" y="260" font-size="16" text-anchor="middle" fill="#ff6b9d" font-family="monospace">Material You theming · AI sidebar · Overview · Dynamic colors</text>
+  <circle cx="100" cy="350" r="40" fill="#ff6b9d" opacity="0.1"/>
+  <circle cx="700" cy="50" r="60" fill="#ff8fab" opacity="0.1"/>
+</svg>

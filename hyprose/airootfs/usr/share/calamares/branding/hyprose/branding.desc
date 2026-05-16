@@ -1,0 +1,51 @@
+---
+componentName:  hyprose
+welcomeStyleCalamares:   true
+welcomeExpandingLogo:    true
+windowExpanding:    normal
+windowSize: 1024x640
+windowMinimumSize: 800x520
+strings:
+    productName:         Hyprose
+    shortProductName:    Hyprose
+    version:             2026.05
+    shortVersion:        2026.05
+    versionedName:       Hyprose 2026.05
+    shortVersionedName:  Hyprose 2026.05
+    bootloaderEntryName: Hyprose
+    productUrl:          https://hyprose.org
+    supportUrl:          https://discord.gg/hyprose
+    knownIssuesUrl:      https://github.com/hyprose/hyprose-iso/issues
+    releaseNotesUrl:     https://hyprose.org/release-notes
+
+images:
+    productLogo:         "hyprose-logo.png"
+    productIcon:         "hyprose-icon.png"
+    productWelcome:      "welcome.png"
+    productBanner:       "banner.png"
+
+slideshow:               "show.qml"
+style:
+    sidebarBackground:    "#1a1a2e"
+    sidebarText:          "#e8e8e8"
+    sidebarTextSelect:    "#ff6b9d"
+    sidebarTextHighlight: "#ff6b9d"
+    background:            "#0f0f1a"
+    text:                  "#e8e8e8"
+    textSelect:            "#ff6b9d"
+    textHighlight:         "#ff6b9d"
+    headerBackground:      "#16213e"
+    headerText:            "#e8e8e8"
+    icon:                  "#ff6b9d"
+    iconHover:             "#ff8fab"
+    buttonBackground:      "#16213e"
+    buttonText:            "#e8e8e8"
+    buttonBorder:          "#ff6b9d"
+    buttonHoverBackground: "#ff6b9d"
+    buttonHoverText:       "#0f0f1a"
+    viewBackground:        "#1a1a2e"
+    viewText:              "#e8e8e8"
+    viewTextSelect:        "#ff6b9d"
+    viewTextHighlight:     "#ff6b9d"
+    viewHover:             "#16213e"
+    viewBorder:            "#2a2a4a"

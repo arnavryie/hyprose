@@ -1,0 +1,11 @@
+#!/bin/bash
+# Quickshell-compatible installer launcher
+# Can be triggered via Super+Shift+I or sidebar button
+
+if command -v calamares &>/dev/null; then
+    # Launch Calamares with sudo
+    pkexec calamares
+else
+    # Fallback to terminal installer
+    kitty -e sudo /usr/local/bin/hyprose-installer
+fi

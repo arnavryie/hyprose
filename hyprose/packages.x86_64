@@ -1,0 +1,169 @@
+# Hyprose Base System
+base
+base-devel
+linux
+linux-firmware
+linux-headers
+mkinitcpio
+mkinitcpio-archiso
+arch-install-scripts
+
+# Boot
+grub
+efibootmgr
+os-prober
+
+# Filesystem
+dosfstools
+ntfs-3g
+btrfs-progs
+xfsprogs
+f2fs-tools
+
+# Networking
+networkmanager
+network-manager-applet
+wireless_tools
+wpa_supplicant
+iwd
+bluez
+bluez-utils
+
+# Audio
+pipewire
+pipewire-alsa
+pipewire-pulse
+pipewire-jack
+wireplumber
+pamixer
+
+# Bluetooth (for end-4 dots)
+bluez
+bluez-utils
+
+# Core Hyprland ecosystem
+hyprland
+hyprcursor
+hyprutils
+hyprgraphics
+hyprlang
+hypridle
+hyprlock
+hyprpaper
+xdg-desktop-portal-hyprland
+
+# Display/Input
+wlroots
+libinput
+libdisplay-info
+seatd
+polkit
+
+# Quickshell (end-4's widget system)
+quickshell
+qt6-base
+qt6-declarative
+qt6-wayland
+qt6-5compat
+qt6-svg
+qt6-multimedia
+qt6-charts
+qt6-graphs
+qt6-quick3d
+
+# Terminal & Shell
+kitty
+fish
+zsh
+bash
+bash-completion
+
+# Launcher & Menus
+fuzzel
+wlogout
+
+# Notifications
+mako
+libnotify
+
+# File Manager
+nautilus
+nautilus-open-any-terminal
+
+# Media & Images
+imagemagick
+ffmpeg
+ffmpegthumbnailer
+
+# Theming & Fonts
+ttf-jetbrains-mono-nerd
+ttf-space-mono-nerd
+ttf-material-symbols-variable-git
+materialsymbols-nerd-font-git
+bibata-cursor-theme
+papirus-icon-theme
+adw-gtk-theme
+nwg-look
+
+# GTK/Qt theming
+gtk3
+gtk4
+qt5ct
+qt6ct
+kvantum
+kvantum-qt5
+
+# Utilities
+gnome-keyring
+gnome-bluetooth-3.0
+upower
+brightnessctl
+grimblast-git
+swappy
+swww
+yad
+gjs
+
+# Python & AI deps
+python
+python-pip
+python-gobject
+python-materialyoucolor
+python-pillow
+python-pywalfox
+python-requests
+python-numpy
+python-scipy
+python-pyaudio
+python-gtts
+python-openai
+python-ollama
+python-google-generativeai
+python-pytesseract
+python-pyperclip
+python-screeninfo
+python-setproctitle
+python-tqdm
+python-watchdog
+python-psutil
+
+# AUR helpers (pre-installed)
+yay
+paru
+
+# Calamares installer
+calamares
+calamares-config
+
+# Live session tools
+firefox
+gparted
+neofetch
+htop
+nano
+vim
+
+# NVIDIA support (optional, included for detection)
+nvidia-dkms
+nvidia-utils
+nvidia-settings

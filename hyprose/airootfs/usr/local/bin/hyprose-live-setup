@@ -1,0 +1,52 @@
+#!/bin/bash
+# Hyprose Live Session Setup
+# Clones end-4 dots and prepares the live environment
+
+set -e
+
+HYPROSE_USER="hyprose"
+DOTS_DIR="/tmp/dots-hyprland"
+CONFIG_DIR="/home/$HYPROSE_USER/.config"
+
+# Ensure user exists
+if ! id "$HYPROSE_USER" &>/dev/null; then
+    useradd -m -G wheel,audio,video,power,storage,input,bluetooth,network,adm -s /bin/bash "$HYPROSE_USER"
+    echo "$HYPROSE_USER:hyprose" | chpasswd
+fi
+
+# Clone end-4 dots if not present
+if [ ! -d "$DOTS_DIR" ]; then
+    git clone --depth 1 https://github.com/end-4/dots-hyprland.git "$DOTS_DIR"
+fi
+
+# Run the installer in transparent mode (shows all commands)
+cd "$DOTS_DIR"
+export II_TRANSPARENT=1
+./setup.sh install
+
+# Set up wallpapers
+mkdir -p /home/$HYPROSE_USER/Wallpapers
+if [ -d /usr/local/share/backgrounds/hyprose ]; then
+    cp /usr/local/share/backgrounds/hyprose/* /home/$HYPROSE_USER/Wallpapers/ 2>/dev/null || true
+fi
+
+# Fix permissions
+chown -R "$HYPROSE_USER:$HYPROSE_USER" /home/$HYPROSE_USER
+
+# Create the "Install Hyprose" launcher on desktop
+mkdir -p /home/$HYPROSE_USER/Desktop
+cat > /home/$HYPROSE_USER/Desktop/install-hyprose.desktop << 'EOF'
+[Desktop Entry]
+Name=Install Hyprose
+Comment=Install Hyprose to your system
+Exec=/usr/local/bin/hyprose-installer
+Icon=system-software-install
+Type=Application
+Terminal=false
+Categories=System;
+EOF
+chmod +x /home/$HYPROSE_USER/Desktop/install-hyprose.desktop
+chown -R "$HYPROSE_USER:$HYPROSE_USER" /home/$HYPROSE_USER/Desktop
+
+# Also add to Quickshell sidebar if possible
+# The installer widget will be available via Super+Shift+I
