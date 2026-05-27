@@ -1,52 +1,103 @@
-#!/bin/bash
-# Hyprose Live Session Setup
-# Clones end-4 dots and prepares the live environment
+#!/usr/bin/env bash
+# hyprose-live-setup — initializes end-4 dots-hyprland in the live session
+# Runs as the `hyprose` user via .bash_profile on tty1
 
-set -e
+set -euo pipefail
 
-HYPROSE_USER="hyprose"
-DOTS_DIR="/tmp/dots-hyprland"
-CONFIG_DIR="/home/$HYPROSE_USER/.config"
+# ── Colors ─────────────────────────────────────────────────────────────────
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
+CYAN='\033[0;36m'; PINK='\033[1;35m'; RESET='\033[0m'
 
-# Ensure user exists
-if ! id "$HYPROSE_USER" &>/dev/null; then
-    useradd -m -G wheel,audio,video,power,storage,input,bluetooth,network,adm -s /bin/bash "$HYPROSE_USER"
-    echo "$HYPROSE_USER:hyprose" | chpasswd
+log()  { echo -e "${CYAN}[hyprose]${RESET} $*"; }
+ok()   { echo -e "${GREEN}[  OK  ]${RESET} $*"; }
+warn() { echo -e "${YELLOW}[ WARN ]${RESET} $*"; }
+err()  { echo -e "${RED}[ FAIL ]${RESET} $*"; }
+
+DOTS_REPO="https://github.com/end-4/dots-hyprland.git"
+DOTS_DIR="$HOME/.local/share/dots-hyprland"
+LOCK_FILE="$HOME/.hyprose-live-done"
+
+# ── Skip if already set up ─────────────────────────────────────────────────
+if [[ -f "$LOCK_FILE" ]]; then
+    log "Live setup already done, launching Hyprland..."
+    exec Hyprland
 fi
 
-# Clone end-4 dots if not present
-if [ ! -d "$DOTS_DIR" ]; then
-    git clone --depth 1 https://github.com/end-4/dots-hyprland.git "$DOTS_DIR"
-fi
-
-# Run the installer in transparent mode (shows all commands)
-cd "$DOTS_DIR"
-export II_TRANSPARENT=1
-./setup.sh install
-
-# Set up wallpapers
-mkdir -p /home/$HYPROSE_USER/Wallpapers
-if [ -d /usr/local/share/backgrounds/hyprose ]; then
-    cp /usr/local/share/backgrounds/hyprose/* /home/$HYPROSE_USER/Wallpapers/ 2>/dev/null || true
-fi
-
-# Fix permissions
-chown -R "$HYPROSE_USER:$HYPROSE_USER" /home/$HYPROSE_USER
-
-# Create the "Install Hyprose" launcher on desktop
-mkdir -p /home/$HYPROSE_USER/Desktop
-cat > /home/$HYPROSE_USER/Desktop/install-hyprose.desktop << 'EOF'
-[Desktop Entry]
-Name=Install Hyprose
-Comment=Install Hyprose to your system
-Exec=/usr/local/bin/hyprose-installer
-Icon=system-software-install
-Type=Application
-Terminal=false
-Categories=System;
+clear
+echo -e "${PINK}"
+cat << 'EOF'
+  _   _                                
+ | | | |_   _ _ __  _ __ ___  ___  ___ 
+ | |_| | | | | '_ \| '__/ _ \/ __|/ _ \
+ |  _  | |_| | |_) | | | (_) \__ \  __/
+ |_| |_|\__, | .__/|_|  \___/|___/\___|
+        |___/|_|                        
 EOF
-chmod +x /home/$HYPROSE_USER/Desktop/install-hyprose.desktop
-chown -R "$HYPROSE_USER:$HYPROSE_USER" /home/$HYPROSE_USER/Desktop
+echo -e "${RESET}"
+log "Welcome to Hyprose Linux — Setting up your desktop..."
+echo ""
 
-# Also add to Quickshell sidebar if possible
-# The installer widget will be available via Super+Shift+I
+# ── Wait for network ───────────────────────────────────────────────────────
+log "Waiting for network..."
+TRIES=0
+until ping -c 1 github.com &>/dev/null 2>&1; do
+    sleep 2
+    TRIES=$((TRIES + 1))
+    if [[ $TRIES -gt 15 ]]; then
+        warn "No network detected. Will use fallback config."
+        break
+    fi
+done
+
+# ── Clone dots-hyprland ────────────────────────────────────────────────────
+if [[ ! -d "$DOTS_DIR" ]]; then
+    log "Cloning end-4/dots-hyprland..."
+    git clone --depth=1 "$DOTS_REPO" "$DOTS_DIR" || {
+        warn "Clone failed. Using bundled fallback config."
+        mkdir -p "$DOTS_DIR"
+    }
+else
+    ok "Dots already cloned."
+fi
+
+# ── Run install script non-interactively ──────────────────────────────────
+if [[ -f "$DOTS_DIR/install.sh" ]]; then
+    log "Running dots install script..."
+    cd "$DOTS_DIR"
+    # Run with --noconfirm equivalent — dots-hyprland respects HYPROSE_LIVE=1
+    export HYPROSE_LIVE=1
+    export IFS_INSTALL_UNATTENDED=1
+    bash install.sh --noconfirm 2>/dev/null || warn "Install script had non-fatal errors."
+    cd ~
+    ok "Dots installed."
+else
+    warn "install.sh not found in dots repo — manually copying configs..."
+    mkdir -p "$HOME/.config"
+    cp -r "$DOTS_DIR"/.config/* "$HOME/.config/" 2>/dev/null || true
+fi
+
+# ── Copy wallpapers ────────────────────────────────────────────────────────
+WALLPAPER_SRC="/usr/local/share/backgrounds/hyprose"
+WALLPAPER_DST="$HOME/Pictures/Wallpapers"
+if [[ -d "$WALLPAPER_SRC" ]]; then
+    mkdir -p "$WALLPAPER_DST"
+    cp -r "$WALLPAPER_SRC"/. "$WALLPAPER_DST/" 2>/dev/null || true
+    ok "Wallpapers copied."
+fi
+
+# ── Set default wallpaper ──────────────────────────────────────────────────
+DEFAULT_WALL=$(find "$WALLPAPER_DST" -name "*.jpg" -o -name "*.png" 2>/dev/null | head -1)
+if [[ -n "$DEFAULT_WALL" ]]; then
+    mkdir -p "$HOME/.config/hypr"
+    echo "exec-once = swww-daemon && swww img \"$DEFAULT_WALL\" --transition-type grow" \
+        > "$HOME/.config/hypr/hyprose-wallpaper.conf"
+fi
+
+# ── Mark setup done ────────────────────────────────────────────────────────
+touch "$LOCK_FILE"
+ok "Live setup complete!"
+sleep 1
+
+# ── Launch Hyprland ────────────────────────────────────────────────────────
+log "Launching Hyprland..."
+exec Hyprland

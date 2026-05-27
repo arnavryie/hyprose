@@ -1,26 +1,37 @@
-# Hyprose default bashrc
+# ~/.bashrc — Hyprose default shell config
 
-# If not running interactively, don't do anything
 [[ $- != *i* ]] && return
 
-alias ls='ls --color=auto'
+# ── Aliases ────────────────────────────────────────────────────────────────
+alias ls='eza --icons --group-directories-first'
+alias ll='eza -lah --icons --group-directories-first'
+alias lt='eza --tree --icons --level=2'
+alias cat='bat --style=plain'
 alias grep='grep --color=auto'
-alias ll='ls -la'
-alias ..='cd ..'
+alias cp='cp -iv'
+alias mv='mv -iv'
+alias rm='rm -Iv'
+alias mkdir='mkdir -pv'
+alias df='df -hT'
+alias free='free -mh'
+alias ip='ip -color=auto'
+alias vi='nvim'
+alias vim='nvim'
 
-# Hyprland env vars
-export XDG_SESSION_TYPE=wayland
-export XDG_CURRENT_DESKTOP=Hyprland
-export MOZ_ENABLE_WAYLAND=1
-export QT_QPA_PLATFORM=wayland
-export SDL_VIDEODRIVER=wayland
+# ── History ────────────────────────────────────────────────────────────────
+HISTCONTROL=ignoredups:erasedups
+HISTSIZE=10000
+HISTFILESIZE=20000
+shopt -s histappend
 
-# Starship prompt if installed
-if command -v starship &>/dev/null; then
-    eval "$(starship init bash)"
-fi
+# ── Starship prompt ────────────────────────────────────────────────────────
+eval "$(starship init bash)"
 
-# Fish as default if available
-if command -v fish &>/dev/null; then
-    exec fish
+# ── FZF ────────────────────────────────────────────────────────────────────
+[ -f /usr/share/fzf/key-bindings.bash ] && source /usr/share/fzf/key-bindings.bash
+[ -f /usr/share/fzf/completion.bash ] && source /usr/share/fzf/completion.bash
+
+# ── Fastfetch on login ─────────────────────────────────────────────────────
+if [[ $(tty) == /dev/tty* ]]; then
+    fastfetch
 fi

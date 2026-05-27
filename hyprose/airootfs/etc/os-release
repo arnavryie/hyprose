@@ -1,0 +1,10 @@
+NAME="Hyprose"
+PRETTY_NAME="Hyprose Linux"
+ID=hyprose
+ID_LIKE=arch
+BUILD_ID=rolling
+ANSI_COLOR="1;35"
+HOME_URL="https://github.com/arnavryie/hyprose"
+SUPPORT_URL="https://github.com/arnavryie/hyprose/issues"
+BUG_REPORT_URL="https://github.com/arnavryie/hyprose/issues"
+LOGO=hyprose-logo

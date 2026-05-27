@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+# hyprose-first-boot — runs once after fresh install
+# Sets up Material You colors, enables user services, clones dots
+
+set -euo pipefail
+
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
+CYAN='\033[0;36m'; PINK='\033[1;35m'; RESET='\033[0m'
+
+log()  { echo -e "${CYAN}[hyprose]${RESET} $*"; }
+ok()   { echo -e "${GREEN}[  OK  ]${RESET} $*"; }
+warn() { echo -e "${YELLOW}[ WARN ]${RESET} $*"; }
+
+DONE_FILE="$HOME/.hyprose-firstboot-done"
+DOTS_REPO="https://github.com/end-4/dots-hyprland.git"
+DOTS_DIR="$HOME/.local/share/dots-hyprland"
+WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
+CONFIG_DIR="$HOME/.config/hyprose"
+
+# ── Skip if already done ───────────────────────────────────────────────────
+[[ -f "$DONE_FILE" ]] && exit 0
+
+clear
+echo -e "${PINK}"
+cat << 'EOF'
+  🌹 Hyprose First Boot Setup
+EOF
+echo -e "${RESET}"
+log "Configuring your desktop for the first time..."
+echo ""
+
+# ── Install dots-hyprland ─────────────────────────────────────────────────
+section() { echo -e "\n${PINK}▸ $*${RESET}"; }
+
+section "Installing dots-hyprland"
+if [[ ! -d "$DOTS_DIR" ]]; then
+    log "Cloning end-4/dots-hyprland..."
+    git clone --depth=1 "$DOTS_REPO" "$DOTS_DIR" 2>/dev/null && ok "Cloned." || {
+        warn "Clone failed — check your internet connection."
+    }
+fi
+
+if [[ -f "$DOTS_DIR/install.sh" ]]; then
+    cd "$DOTS_DIR"
+    bash install.sh --noconfirm 2>/dev/null && ok "Dots installed." || warn "Dots install had errors."
+    cd ~
+fi
+
+# ── Copy wallpapers ────────────────────────────────────────────────────────
+section "Setting up wallpapers"
+mkdir -p "$WALLPAPER_DIR"
+SYSTEM_WALLS="/usr/local/share/backgrounds/hyprose"
+[[ -d "$SYSTEM_WALLS" ]] && cp -r "$SYSTEM_WALLS"/. "$WALLPAPER_DIR/" 2>/dev/null || true
+ok "Wallpapers ready at $WALLPAPER_DIR"
+
+# ── Material You theming ──────────────────────────────────────────────────
+section "Generating Material You colors"
+DEFAULT_WALL=$(find "$WALLPAPER_DIR" -maxdepth 1 \( -name "*.jpg" -o -name "*.png" -o -name "*.webp" \) 2>/dev/null | head -1)
+if [[ -n "$DEFAULT_WALL" ]] && command -v matugen &>/dev/null; then
+    matugen image "$DEFAULT_WALL" 2>/dev/null && ok "Colors generated from: $(basename "$DEFAULT_WALL")"
+else
+    warn "matugen not found or no wallpaper — skipping color gen."
+fi
+
+# ── Enable user services ──────────────────────────────────────────────────
+section "Enabling user services"
+systemctl --user enable --now pipewire.service 2>/dev/null && ok "pipewire" || warn "pipewire failed"
+systemctl --user enable --now pipewire-pulse.service 2>/dev/null && ok "pipewire-pulse" || warn "pipewire-pulse failed"
+systemctl --user enable --now wireplumber.service 2>/dev/null && ok "wireplumber" || warn "wireplumber failed"
+command -v ags &>/dev/null && systemctl --user enable --now ags.service 2>/dev/null && ok "ags" || true
+
+# ── Create user config ────────────────────────────────────────────────────
+section "Creating user config"
+mkdir -p "$CONFIG_DIR"
+cat > "$CONFIG_DIR/user.conf" << CONFIG
+# Hyprose user config — edit these to customize
+HYPROSE_WALLPAPER="$DEFAULT_WALL"
+HYPROSE_ACCENT="pink"
+HYPROSE_OPACITY="0.9"
+HYPROSE_BLUR="5"
+CONFIG
+ok "Config written to $CONFIG_DIR/user.conf"
+
+# ── Welcome notification ──────────────────────────────────────────────────
+sleep 3
+command -v notify-send &>/dev/null && \
+    notify-send "🌹 Welcome to Hyprose" \
+        "Your Hyprland desktop is ready.\nEdit ~/.config/hyprose/user.conf to customize." \
+        --app-name="Hyprose" \
+        --urgency=normal 2>/dev/null || true
+
+# ── Mark done ─────────────────────────────────────────────────────────────
+touch "$DONE_FILE"
+ok "First boot setup complete!"
+log "Enjoy your Hyprose desktop 🌹"

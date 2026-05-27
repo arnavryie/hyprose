@@ -1,169 +1,170 @@
-# Hyprose Base System
 base
 base-devel
 linux
 linux-firmware
 linux-headers
+systemd
+systemd-sysvcompat
 mkinitcpio
 mkinitcpio-archiso
-arch-install-scripts
 
-# Boot
+networkmanager
+nm-connection-editor
+network-manager-applet
+iwd
+wpa_supplicant
+dhcpcd
+
 grub
 efibootmgr
+dosfstools
+mtools
 os-prober
 
-# Filesystem
-dosfstools
-ntfs-3g
-btrfs-progs
-xfsprogs
-f2fs-tools
-
-# Networking
-networkmanager
-network-manager-applet
-wireless_tools
-wpa_supplicant
-iwd
-bluez
-bluez-utils
-
-# Audio
-pipewire
-pipewire-alsa
-pipewire-pulse
-pipewire-jack
-wireplumber
-pamixer
-
-# Bluetooth (for end-4 dots)
-bluez
-bluez-utils
-
-# Core Hyprland ecosystem
 hyprland
-hyprcursor
-hyprutils
-hyprgraphics
-hyprlang
-hypridle
 hyprlock
-hyprpaper
+hypridle
+hyprpicker
 xdg-desktop-portal-hyprland
-
-# Display/Input
-wlroots
+xdg-desktop-portal-gtk
+xdg-user-dirs
+xdg-utils
+wayland
+wayland-protocols
 libinput
-libdisplay-info
-seatd
-polkit
+wlroots
 
-# Quickshell (end-4's widget system)
-quickshell
-qt6-base
-qt6-declarative
-qt6-wayland
-qt6-5compat
-qt6-svg
-qt6-multimedia
-qt6-charts
-qt6-graphs
-qt6-quick3d
-
-# Terminal & Shell
-kitty
-fish
-zsh
-bash
-bash-completion
-
-# Launcher & Menus
-fuzzel
-wlogout
-
-# Notifications
-mako
+swww
+waybar
+rofi-wayland
+dunst
 libnotify
 
-# File Manager
-nautilus
-nautilus-open-any-terminal
+kitty
+alacritty
+zsh
+starship
+fastfetch
+btop
+bat
+eza
+fzf
+ripgrep
+fd
+jq
+yq
 
-# Media & Images
-imagemagick
-ffmpeg
+thunar
+gvfs
+gvfs-mtp
+tumbler
 ffmpegthumbnailer
+file-roller
+p7zip
+unrar
 
-# Theming & Fonts
+nemo
+nemo-fileroller
+
+pipewire
+pipewire-alsa
+pipewire-jack
+pipewire-pulse
+wireplumber
+pavucontrol
+pamixer
+playerctl
+
+mesa
+libva-mesa-driver
+mesa-vdpau
+vulkan-intel
+vulkan-radeon
+intel-media-driver
+libvdpau-va-gl
+nvidia
+nvidia-utils
+nvidia-settings
+lib32-nvidia-utils
+opencl-nvidia
+
+noto-fonts
+noto-fonts-cjk
+noto-fonts-emoji
+noto-fonts-extra
 ttf-jetbrains-mono-nerd
-ttf-space-mono-nerd
-ttf-material-symbols-variable-git
-materialsymbols-nerd-font-git
-bibata-cursor-theme
-papirus-icon-theme
-adw-gtk-theme
-nwg-look
+ttf-nerd-fonts-symbols
+ttf-nerd-fonts-symbols-mono
+ttf-font-awesome
+ttf-roboto
+ttf-ubuntu-font-family
+otf-font-awesome
 
-# GTK/Qt theming
 gtk3
 gtk4
+qt5-wayland
+qt6-wayland
 qt5ct
 qt6ct
 kvantum
-kvantum-qt5
+nwg-look
 
-# Utilities
-gnome-keyring
-gnome-bluetooth-3.0
-upower
-brightnessctl
-grimblast-git
-swappy
-swww
-yad
-gjs
-
-# Python & AI deps
 python
 python-pip
 python-gobject
-python-materialyoucolor
-python-pillow
-python-pywalfox
-python-requests
-python-numpy
-python-scipy
-python-pyaudio
-python-gtts
-python-openai
-python-ollama
-python-google-generativeai
-python-pytesseract
-python-pyperclip
-python-screeninfo
-python-setproctitle
-python-tqdm
-python-watchdog
+python-dbus
 python-psutil
+nodejs
+npm
+git
+wget
+curl
+rsync
+unzip
+zip
+tar
 
-# AUR helpers (pre-installed)
-yay
-paru
+grim
+slurp
+wl-clipboard
+cliphist
+wf-recorder
+swappy
 
-# Calamares installer
+polkit
+polkit-gnome
+gnome-keyring
+libsecret
+seahorse
+
+bluez
+bluez-utils
+blueman
+
+cups
+cups-pdf
+system-config-printer
+
+firefox
+mpv
+imv
+zathura
+zathura-pdf-mupdf
+
+reflector
+pacman-contrib
+arch-install-scripts
+gptfdisk
+parted
+btrfs-progs
+e2fsprogs
+dosfstools
+
+dialog
+whiptail
+libnewt
+
 calamares
 calamares-config
 
-# Live session tools
-firefox
-gparted
-neofetch
-htop
-nano
-vim
-
-# NVIDIA support (optional, included for detection)
-nvidia-dkms
-nvidia-utils
-nvidia-settings
+matugen

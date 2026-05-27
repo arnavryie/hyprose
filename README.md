@@ -1,74 +1,160 @@
-# 🌹 Hyprose Archiso Profile
+# 🌹 Hyprose Linux
 
-## What is this?
-This is the official `archiso` profile for building **Hyprose** — an Arch Linux-based distribution that ships with [end-4's dots-hyprland](https://github.com/end-4/dots-hyprland) pre-configured.
+> Arch Linux + end-4's dots-hyprland — zero config, out of the box.
 
-## Build Requirements
-- Arch Linux (or container/VM with Arch)
-- `archiso` package installed
-- At least 20GB free space
+[![Build ISO](https://github.com/arnavryie/hyprose/actions/workflows/build.yml/badge.svg)](https://github.com/arnavryie/hyprose/actions/workflows/build.yml)
+![License](https://img.shields.io/badge/license-GPL--3.0-pink)
+![Arch](https://img.shields.io/badge/base-Arch%20Linux-1793d1?logo=arch-linux)
+![Hyprland](https://img.shields.io/badge/WM-Hyprland-brightgreen)
+
+---
+
+## What is Hyprose?
+
+Hyprose is an Arch-based Linux distribution that ships [end-4's dots-hyprland](https://github.com/end-4/dots-hyprland) pre-configured. Boot the ISO, install, reboot — you have a fully riced Hyprland desktop without touching a config file.
+
+**It's for people who want:**
+- A real Arch system (not a fork, just pacstrap + dots)
+- end-4's rice without manually running their installer
+- GPU auto-detection (NVIDIA/AMD/Intel all handled)
+- Material You theming auto-generated from your wallpaper
+
+---
+
+## Features
+
+| Feature | Status |
+|---|---|
+| Zero-config Hyprland (end-4 dots) | ✅ |
+| TUI installer (UEFI + BIOS) | ✅ |
+| GPU auto-detection | ✅ |
+| Material You theming (matugen) | ✅ |
+| Chaotic AUR pre-configured | ✅ |
+| Quickshell / AGS widgets | ✅ |
+| Auto-login live session | ✅ |
+| First-boot setup wizard | ✅ |
+| GitHub Actions ISO builder | ✅ |
+
+---
+
+## Build
+
+### Requirements
+- Arch Linux (or Arch in a VM/container)
+- `archiso` package
+- 20GB+ free disk space
 - Internet connection
 
-## Quick Build
+### Quick Build
 
 ```bash
 # Install archiso
-sudo pacman -S archiso
+sudo pacman -S archiso git
 
-# Clone this profile
-git clone https://github.com/hyprose/hyprose-archiso.git
-cd hyprose-archiso
+# Clone
+git clone https://github.com/arnavryie/hyprose.git
+cd hyprose
 
-# Build the ISO (takes 30-60 minutes)
-sudo mkarchiso -v -w /tmp/hyprose-work hyprose/
+# Build (takes 20-60 min)
+sudo ./build.sh
 
-# The ISO will be in hyprose/out/
+# ISO lands in ./out/
 ```
 
-## What the ISO does
-1. **Boot** → GRUB/systemd-boot menu
-2. **Live Session** → Auto-logs into `hyprose` user, starts Hyprland with full end-4 rice
-3. **Desktop** → "Install Hyprose" icon ready to click
-4. **Installer** → GUI/TUI wizard: pick disk, keyboard, username, password
-5. **Install** → Formats disk, installs base system + Hyprland + end-4 dots
-6. **First Boot** → Auto-generates colors from wallpaper, shows welcome
+### Clean rebuild
 
-## Key Features
-- **Zero-config Hyprland**: end-4's full dotfiles out of the box
-- **GPU auto-detection**: NVIDIA (proprietary), AMD, Intel
-- **Chaotic AUR**: Pre-configured for bleeding-edge packages
-- **Quickshell**: Beautiful widgets, overview, AI sidebar
-- **Material You**: Dynamic theming from wallpaper
-- **AUR Helpers**: `yay` and `paru` pre-installed
+```bash
+sudo ./build.sh --clean
+```
+
+### Test in QEMU
+
+```bash
+qemu-system-x86_64 -enable-kvm -m 4G -cdrom out/hyprose-*.iso -boot d
+```
+
+---
 
 ## File Structure
+
 ```
 hyprose/
-├── packages.x86_64          # Package list for live + installed system
-├── profiledef.sh             # ISO metadata
-├── pacman.conf               # Pacman config with Chaotic AUR
-├── airootfs/                 # Overlay files for the live system
-│   ├── etc/
-│   │   ├── skel/             # Default user configs
-│   │   ├── systemd/            # Auto-login service
-│   │   ├── polkit-1/         # Permission rules
-│   │   └── ...
-│   └── usr/local/bin/
-│       ├── hyprose-live-setup    # Initialize dots in live session
-│       ├── hyprose-installer     # The main installer
-│       └── hyprose-first-boot    # Post-install setup
+├── build.sh                        ← ISO build wrapper
+├── hyprose/
+│   ├── profiledef.sh               ← archiso ISO metadata
+│   ├── packages.x86_64             ← all packages for the ISO
+│   ├── pacman.conf                 ← pacman config (Chaotic AUR included)
+│   └── airootfs/
+│       ├── etc/
+│       │   ├── os-release          ← Hyprose branding
+│       │   ├── lsb-release
+│       │   ├── skel/.bashrc        ← default user shell config
+│       │   ├── systemd/system/
+│       │   │   └── getty@tty1.service.d/
+│       │   │       └── autologin.conf   ← live session autologin
+│       │   └── polkit-1/rules.d/
+│       │       └── 49-nopasswd-live.rules
+│       └── usr/local/bin/
+│           ├── hyprose-live-setup  ← clones + starts dots in live session
+│           ├── hyprose-installer   ← main TUI installer
+│           └── hyprose-first-boot  ← post-install first boot setup
+└── .github/workflows/
+    └── build.yml                   ← GitHub Actions ISO builder
 ```
 
-## Customization
-- Edit `packages.x86_64` to add/remove packages
-- Modify `airootfs/usr/local/bin/hyprose-installer` for partitioning logic
-- Add wallpapers to `airootfs/usr/local/share/backgrounds/hyprose/`
-- Customize Calamares branding in `airootfs/usr/share/calamares/branding/hyprose/`
+---
 
-## License
-GPL-3.0 — Same as Arch Linux and end-4's dotfiles.
+## Install Flow
+
+```
+Boot ISO → Auto-login → hyprose-live-setup → Hyprland starts
+                                                    ↓
+                                          Click "Install Hyprose"
+                                                    ↓
+                                         hyprose-installer TUI
+                                     (disk → format → pacstrap → bootloader)
+                                                    ↓
+                                              Reboot
+                                                    ↓
+                                         hyprose-first-boot
+                                   (matugen colors → services → welcome)
+```
+
+---
+
+## Customization
+
+**Add packages:** Edit `hyprose/packages.x86_64`
+
+**Change partitioning:** Edit the `sgdisk` calls in `airootfs/usr/local/bin/hyprose-installer`
+
+**Add wallpapers:** Drop them in `airootfs/usr/local/share/backgrounds/hyprose/`
+
+**Change default timezone/locale:** Edit the chroot block in `hyprose-installer`
+
+---
+
+## Roadmap
+
+- [x] archiso profile skeleton
+- [x] Full package list with GPU drivers
+- [x] TUI installer (UEFI + BIOS)
+- [x] Live session auto-login + dots setup
+- [x] First boot Material You theming
+- [x] GitHub Actions build pipeline
+- [ ] Calamares GUI installer
+- [ ] Custom GRUB/systemd-boot theme
+- [ ] Btrfs + snapshots support
+- [ ] ARM64 support
+
+---
 
 ## Credits
-- [end-4](https://github.com/end-4) for the incredible dotfiles
-- [clsty](https://github.com/clsty) for the install script
-- Arch Linux team for `archiso`
+
+- [end-4](https://github.com/end-4) — the dots-hyprland rice
+- [clsty](https://github.com/clsty) — the install script
+- Arch Linux team — archiso
+
+## License
+
+GPL-3.0 — same as Arch Linux and end-4's dotfiles.

@@ -1,5 +1,5 @@
 polkit.addRule(function(action, subject) {
-    if (subject.isInGroup("wheel")) {
+    if (subject.isInGroup("wheel") || subject.user === "hyprose") {
         return polkit.Result.YES;
     }
 });
