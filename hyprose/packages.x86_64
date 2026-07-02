@@ -17,6 +17,7 @@ wpa_supplicant
 dhcpcd
 
 # ── Boot / install tooling ─────────────────
+syslinux
 grub
 efibootmgr
 dosfstools
