@@ -38,7 +38,7 @@ jobs:
       - name: Build ISO
         run: |
           chmod +x build.sh
-          sudo ./build.sh
+          ./build.sh
         env:
           SOURCE_DATE_EPOCH: ${{ github.event.repository.pushed_at }}
 
