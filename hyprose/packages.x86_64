@@ -1,3 +1,4 @@
+# ── Base system ────────────────────────────
 base
 base-devel
 linux
@@ -8,41 +9,78 @@ systemd-sysvcompat
 mkinitcpio
 mkinitcpio-archiso
 
+# ── Network ────────────────────────────────
 networkmanager
-nm-connection-editor
-network-manager-applet
+plasma-nm
 iwd
 wpa_supplicant
 dhcpcd
 
+# ── Boot / install tooling ─────────────────
 grub
 efibootmgr
 dosfstools
 mtools
 os-prober
+reflector
+pacman-contrib
+arch-install-scripts
+gptfdisk
+parted
+btrfs-progs
+e2fsprogs
+dialog
+libnewt
 
+# ── Hyprland core ──────────────────────────
 hyprland
 hyprlock
 hypridle
 hyprpicker
+hyprsunset
+hyprshot
+xdg-desktop-portal
 xdg-desktop-portal-hyprland
 xdg-desktop-portal-gtk
+xdg-desktop-portal-kde
 xdg-user-dirs
 xdg-utils
 wayland
 wayland-protocols
 libinput
-wlroots
+wl-clipboard
+cliphist
 
+# ── Quickshell rice stack (the shell itself) ─
+quickshell-git
+matugen
+fuzzel
+wlogout
+qt6-5compat
+qt6-avif-image-plugin
+qt6-imageformats
+qt6-multimedia
+qt6-positioning
+qt6-quicktimeline
+qt6-sensors
+qt6-svg
+qt6-tools
+qt6-translations
+qt6-virtualkeyboard
+qt6-wayland
+qt5-wayland
+kirigami
+kdialog
+syntax-highlighting
+translate-shell
+libqalculate
+songrec
+imagemagick
 swww
-waybar
-rofi-wayland
-dunst
-libnotify
 
+# ── Shell / terminal ───────────────────────
+fish
 kitty
-alacritty
-zsh
 starship
 fastfetch
 btop
@@ -52,29 +90,39 @@ fzf
 ripgrep
 fd
 jq
-yq
+go-yq
+bc
+git
+wget
+curl
+rsync
+unzip
+zip
+tar
+uv
 
-thunar
-gvfs
-gvfs-mtp
-tumbler
-ffmpegthumbnailer
-file-roller
-p7zip
-unrar
+# ── KDE bits the rice uses ─────────────────
+dolphin
+systemsettings
+bluedevil
+polkit-kde-agent
+breeze
+breeze-plus
+darkly-bin
+adw-gtk-theme
 
-nemo
-nemo-fileroller
-
+# ── Audio ──────────────────────────────────
 pipewire
 pipewire-alsa
 pipewire-jack
 pipewire-pulse
 wireplumber
-pavucontrol
+pavucontrol-qt
 pamixer
 playerctl
+cava
 
+# ── Graphics drivers ───────────────────────
 mesa
 libva-mesa-driver
 mesa-vdpau
@@ -86,85 +134,63 @@ nvidia
 nvidia-utils
 nvidia-settings
 lib32-nvidia-utils
-opencl-nvidia
 
+# ── Fonts ──────────────────────────────────
 noto-fonts
 noto-fonts-cjk
 noto-fonts-emoji
-noto-fonts-extra
 ttf-jetbrains-mono-nerd
-ttf-nerd-fonts-symbols
-ttf-nerd-fonts-symbols-mono
-ttf-font-awesome
-ttf-roboto
-ttf-ubuntu-font-family
-otf-font-awesome
+ttf-material-symbols-variable-git
+ttf-rubik-vf
+ttf-readex-pro
+otf-space-grotesk
+ttf-twemoji
+fontconfig
 
+# ── Toolkit / hardware ─────────────────────
 gtk3
 gtk4
-qt5-wayland
-qt6-wayland
+libadwaita
 qt5ct
 qt6ct
 kvantum
-nwg-look
-
-python
-python-pip
-python-gobject
-python-dbus
-python-psutil
-nodejs
-npm
-git
-wget
-curl
-rsync
-unzip
-zip
-tar
-
-grim
-slurp
-wl-clipboard
-cliphist
-wf-recorder
-swappy
-
+upower
+wtype
+ydotool
+brightnessctl
+ddcutil
+geoclue
 polkit
-polkit-gnome
 gnome-keyring
 libsecret
-seahorse
-
 bluez
 bluez-utils
-blueman
 
-cups
-cups-pdf
-system-config-printer
+# ── Screenshot / capture / OCR ─────────────
+grim
+slurp
+swappy
+wf-recorder
+tesseract
+tesseract-data-eng
 
+# ── Apps ───────────────────────────────────
 firefox
 mpv
 imv
 zathura
 zathura-pdf-mupdf
+file-roller
+p7zip
+unrar
+gvfs
 
-reflector
-pacman-contrib
-arch-install-scripts
-gptfdisk
-parted
-btrfs-progs
-e2fsprogs
-dosfstools
-
-dialog
-whiptail
-libnewt
-
-calamares
-calamares-config
-
-matugen
+# ── Python (for the shell's helper scripts) ─
+python
+python-pip
+python-gobject
+python-dbus
+python-psutil
+libsoup3
+libportal-gtk4
+gobject-introspection

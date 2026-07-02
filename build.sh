@@ -40,6 +40,19 @@ if [[ "${1:-}" == "--clean" ]]; then
     ok "Cleaned."
 fi
 
+# ── Vendor dots (skip with SKIP_VENDOR=1 if already done) ──────────────────
+if [[ "${SKIP_VENDOR:-0}" != "1" ]]; then
+    log "Vendoring hyprose-dots into airootfs..."
+    rm -rf /tmp/hyprose-dots
+    git clone --depth=1 --recurse-submodules \
+        https://github.com/arnavryie/hyprose-dots.git /tmp/hyprose-dots
+    mkdir -p "$PROFILE_DIR/airootfs/etc/skel"
+    rsync -a /tmp/hyprose-dots/dots/ "$PROFILE_DIR/airootfs/etc/skel/"
+    mkdir -p "$PROFILE_DIR/airootfs/usr/share/hyprose"
+    rsync -a --exclude='.git' /tmp/hyprose-dots/ "$PROFILE_DIR/airootfs/usr/share/hyprose/dots/"
+    ok "Dots vendored."
+fi
+
 # ── Create dirs ────────────────────────────────────────────────────────────
 mkdir -p "$WORK_DIR" "$OUT_DIR"
 

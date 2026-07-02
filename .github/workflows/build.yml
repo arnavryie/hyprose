@@ -22,7 +22,18 @@ jobs:
       - name: Update system + install archiso
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm archiso git
+          pacman -S --noconfirm archiso git rsync
+
+      - name: Vendor hyprose-dots into airootfs
+        run: |
+          git clone --depth=1 --recurse-submodules \
+            https://github.com/arnavryie/hyprose-dots.git /tmp/hyprose-dots
+          # User-facing dotfiles -> live user skeleton
+          mkdir -p hyprose/airootfs/etc/skel
+          rsync -a /tmp/hyprose-dots/dots/ hyprose/airootfs/etc/skel/
+          # Full repo copy -> for the installer + future first-boot venv setup
+          mkdir -p hyprose/airootfs/usr/share/hyprose
+          rsync -a --exclude='.git' /tmp/hyprose-dots/ hyprose/airootfs/usr/share/hyprose/dots/
 
       - name: Build ISO
         run: |

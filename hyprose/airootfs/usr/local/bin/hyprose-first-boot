@@ -12,8 +12,7 @@ ok()   { echo -e "${GREEN}[  OK  ]${RESET} $*"; }
 warn() { echo -e "${YELLOW}[ WARN ]${RESET} $*"; }
 
 DONE_FILE="$HOME/.hyprose-firstboot-done"
-DOTS_REPO="https://github.com/end-4/dots-hyprland.git"
-DOTS_DIR="$HOME/.local/share/dots-hyprland"
+DOTS_DIR="/usr/share/hyprose/dots"
 WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
 CONFIG_DIR="$HOME/.config/hyprose"
 
@@ -32,12 +31,9 @@ echo ""
 # ── Install dots-hyprland ─────────────────────────────────────────────────
 section() { echo -e "\n${PINK}▸ $*${RESET}"; }
 
-section "Installing dots-hyprland"
-if [[ ! -d "$DOTS_DIR" ]]; then
-    log "Cloning end-4/dots-hyprland..."
-    git clone --depth=1 "$DOTS_REPO" "$DOTS_DIR" 2>/dev/null && ok "Cloned." || {
-        warn "Clone failed — check your internet connection."
-    }
+section "Checking Hyprose configuration"
+if [[ -d "$HOME/.config/quickshell" ]]; then
+    ok "Configs already installed from skel."
 fi
 
 if [[ -f "$DOTS_DIR/install.sh" ]]; then

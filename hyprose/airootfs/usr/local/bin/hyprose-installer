@@ -16,7 +16,7 @@ section() { echo -e "\n${PINK}${BOLD}━━━ $* ━━━${RESET}\n"; }
 
 MOUNT="/mnt"
 LOG_FILE="/tmp/hyprose-install.log"
-DOTS_REPO="https://github.com/end-4/dots-hyprland.git"
+DOTS_SRC="/usr/share/hyprose/dots"
 
 # ── Root check ─────────────────────────────────────────────────────────────
 [[ $EUID -ne 0 ]] && err "Run as root: sudo hyprose-installer"
@@ -172,6 +172,13 @@ ok "fstab written."
 
 # ── chroot setup ──────────────────────────────────────────────────────────
 section "Configuring System"
+# ── Copy Hyprose dots into target system ───────────────────────────────────
+log "Installing Hyprose configuration into target..."
+mkdir -p "$MOUNT/etc/skel"
+rsync -a /etc/skel/ "$MOUNT/etc/skel/" 2>/dev/null || true
+mkdir -p "$MOUNT/usr/share/hyprose"
+rsync -a "$DOTS_SRC/" "$MOUNT/usr/share/hyprose/dots/" 2>/dev/null || true
+
 log "Entering chroot..."
 
 arch-chroot "$MOUNT" /bin/bash << CHROOT
