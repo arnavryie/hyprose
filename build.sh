@@ -68,6 +68,20 @@ else
     ok "Dots vendored."
 fi
 
+# -- Vendor UI fonts not packaged in repos ------------------------------------
+FONT_DIR="$PROFILE_DIR/airootfs/etc/skel/.local/share/fonts"
+if [[ ! -f "$FONT_DIR/Rubik-Variable.ttf" ]]; then
+    log "Vendoring UI fonts (Rubik, Space Grotesk)..."
+    mkdir -p "$FONT_DIR"
+    curl -fsSL -o "$FONT_DIR/Rubik-Variable.ttf" \
+        "https://github.com/google/fonts/raw/main/ofl/rubik/Rubik%5Bwght%5D.ttf" \
+        || warn "Rubik download failed (non-fatal, fallback fonts will be used)"
+    curl -fsSL -o "$FONT_DIR/SpaceGrotesk-Variable.ttf" \
+        "https://github.com/google/fonts/raw/main/ofl/spacegrotesk/SpaceGrotesk%5Bwght%5D.ttf" \
+        || warn "Space Grotesk download failed (non-fatal)"
+    ok "Fonts vendored."
+fi
+
 # -- Build --------------------------------------------------------------------
 mkdir -p "$WORK_DIR" "$OUT_DIR"
 log "Starting ISO build (20-60 minutes)..."

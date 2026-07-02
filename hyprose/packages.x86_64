@@ -66,13 +66,13 @@ wl-clipboard
 cliphist
 
 # ── Quickshell rice stack (the shell itself — NEVER remove) ─
-# CONFLICT 2026-07-02: quickshell-git
+quickshell
 matugen
 fuzzel
 wlogout
 qt5-wayland
 qt6-5compat
-# CONFLICT 2026-07-02: qt6-avif-image-plugin
+kimageformats
 qt6-imageformats
 qt6-multimedia
 qt6-positioning
@@ -121,8 +121,6 @@ systemsettings
 bluedevil
 polkit-kde-agent
 breeze
-# CONFLICT 2026-07-02: breeze-plus
-# CONFLICT 2026-07-02: darkly-bin
 adw-gtk-theme
 
 # ── Audio ──────────────────────────────────
@@ -137,9 +135,9 @@ playerctl
 cava
 
 # ── Graphics drivers ───────────────────────
+# libva-mesa-driver + mesa-vdpau are merged into mesa upstream — do NOT list
+# them separately (their legacy names pull in mesa-tkg-git and break the build)
 mesa
-libva-mesa-driver
-mesa-vdpau
 vulkan-intel
 vulkan-radeon
 intel-media-driver
@@ -159,9 +157,7 @@ noto-fonts-cjk
 noto-fonts-emoji
 ttf-jetbrains-mono-nerd
 ttf-material-symbols-variable-git
-# CONFLICT 2026-07-02: ttf-rubik-vf
 ttf-readex-pro
-# CONFLICT 2026-07-02: otf-space-grotesk
 ttf-twemoji
 fontconfig
 
