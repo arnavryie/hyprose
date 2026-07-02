@@ -33,13 +33,10 @@ section() { echo -e "\n${PINK}▸ $*${RESET}"; }
 
 section "Checking Hyprose configuration"
 if [[ -d "$HOME/.config/quickshell" ]]; then
-    ok "Configs already installed from skel."
-fi
-
-if [[ -f "$DOTS_DIR/install.sh" ]]; then
-    cd "$DOTS_DIR"
-    bash install.sh --noconfirm 2>/dev/null && ok "Dots installed." || warn "Dots install had errors."
-    cd ~
+    ok "Hyprose configs present."
+else
+    warn "Configs missing from home — copying from /etc/skel..."
+    cp -r /etc/skel/. "$HOME/" 2>/dev/null || true
 fi
 
 # ── Copy wallpapers ────────────────────────────────────────────────────────

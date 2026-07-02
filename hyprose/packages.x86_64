@@ -1,3 +1,9 @@
+# ═══════════════════════════════════════════════
+# HYPROSE — canonical package list
+# Sources: Arch official repos + chaotic-aur
+# Do not remove entries; comment with reason if conflicting
+# ═══════════════════════════════════════════════
+
 # ── Base system ────────────────────────────
 base
 base-devel
@@ -16,7 +22,7 @@ iwd
 wpa_supplicant
 dhcpcd
 
-# ── Boot / install tooling ─────────────────
+# ── Boot / ISO infrastructure ──────────────
 syslinux
 memtest86+
 memtest86+-efi
@@ -59,6 +65,33 @@ libinput
 wl-clipboard
 cliphist
 
+# ── Quickshell rice stack (the shell itself — NEVER remove) ─
+quickshell-git
+matugen
+fuzzel
+wlogout
+qt5-wayland
+qt6-5compat
+qt6-avif-image-plugin
+qt6-imageformats
+qt6-multimedia
+qt6-positioning
+qt6-quicktimeline
+qt6-sensors
+qt6-svg
+qt6-tools
+qt6-translations
+qt6-virtualkeyboard
+qt6-wayland
+kirigami
+kdialog
+syntax-highlighting
+translate-shell
+libqalculate
+songrec
+imagemagick
+swww
+
 # ── Shell / terminal ───────────────────────
 fish
 kitty
@@ -88,6 +121,8 @@ systemsettings
 bluedevil
 polkit-kde-agent
 breeze
+breeze-plus
+darkly-bin
 adw-gtk-theme
 
 # ── Audio ──────────────────────────────────
@@ -101,8 +136,7 @@ pamixer
 playerctl
 cava
 
-# ── Graphics drivers (live session = mesa only; NVIDIA installed to target
-# by the installer in a later phase — do NOT add nvidia/lib32 here) ─────────
+# ── Graphics drivers ───────────────────────
 mesa
 libva-mesa-driver
 mesa-vdpau
@@ -110,6 +144,14 @@ vulkan-intel
 vulkan-radeon
 intel-media-driver
 libvdpau-va-gl
+# NVIDIA via dkms: builds against the ISO's kernel at build time,
+# immune to the prebuilt-module version-mismatch conflicts
+nvidia-dkms
+nvidia-utils
+nvidia-settings
+# 32-bit NVIDIA (Steam/Wine). If build fails with a lib32/multilib
+# version conflict, comment ONLY this line and re-run:
+lib32-nvidia-utils
 
 # ── Fonts ──────────────────────────────────
 noto-fonts
@@ -117,7 +159,9 @@ noto-fonts-cjk
 noto-fonts-emoji
 ttf-jetbrains-mono-nerd
 ttf-material-symbols-variable-git
+ttf-rubik-vf
 ttf-readex-pro
+otf-space-grotesk
 ttf-twemoji
 fontconfig
 
@@ -159,7 +203,7 @@ p7zip
 unrar
 gvfs
 
-# ── Python (for the shell's helper scripts) ─
+# ── Python (shell helper scripts) ──────────
 python
 python-pip
 python-gobject
