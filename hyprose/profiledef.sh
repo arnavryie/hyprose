@@ -16,10 +16,13 @@ bootmodes=()
 # always match the archiso version doing the build. Falls back to a static list.
 _releng_profiledef="/usr/share/archiso/configs/releng/profiledef.sh"
 if [[ -r "$_releng_profiledef" ]]; then
-    mapfile -t bootmodes < <(bash -c "source '$_releng_profiledef' >/dev/null 2>&1; printf '%s\n' \"\${bootmodes[@]}\"")
+    # Safely source releng profile and extract bootmodes array
+    if output=$(bash -c "source '$_releng_profiledef' >/dev/null 2>&1; printf '%s\\n' \"\${bootmodes[@]}\"") && [[ -n "$output" ]]; then
+        mapfile -t bootmodes <<< "$output"
+    fi
 fi
 
-# Only set defaults if bootmodes is still empty
+# Fallback to default bootmodes if still empty
 if (( ${#bootmodes[@]} == 0 )); then
     bootmodes=(
         'bios.syslinux.mbr'

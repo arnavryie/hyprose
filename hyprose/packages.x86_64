@@ -59,31 +59,6 @@ libinput
 wl-clipboard
 cliphist
 
-# ── Quickshell rice stack (the shell itself) ─
-matugen
-fuzzel
-wlogout
-qt6-5compat
-qt6-imageformats
-qt6-multimedia
-qt6-positioning
-qt6-quicktimeline
-qt6-sensors
-qt6-svg
-qt6-tools
-qt6-translations
-qt6-virtualkeyboard
-qt6-wayland
-qt5-wayland
-kirigami
-kdialog
-syntax-highlighting
-translate-shell
-libqalculate
-songrec
-imagemagick
-swww
-
 # ── Shell / terminal ───────────────────────
 fish
 kitty
@@ -127,8 +102,9 @@ playerctl
 cava
 
 # ── Graphics drivers ───────────────────────
-# Note: mesa-tkg-git from Chaotic AUR provides mesa
-# Removed mesa, vulkan-intel, vulkan-radeon to avoid conflicts
+# Note: mesa-tkg-git from Chaotic AUR provides mesa functionality
+# Explicitly listed to handle libva-mesa-driver provider selection
+mesa-tkg-git
 intel-media-driver
 libvdpau-va-gl
 nvidia
