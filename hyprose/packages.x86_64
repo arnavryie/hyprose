@@ -159,9 +159,9 @@ noto-fonts-cjk
 noto-fonts-emoji
 ttf-jetbrains-mono-nerd
 ttf-material-symbols-variable-git
-ttf-rubik-vf
+# CONFLICT 2026-07-02: ttf-rubik-vf
 ttf-readex-pro
-otf-space-grotesk
+# CONFLICT 2026-07-02: otf-space-grotesk
 ttf-twemoji
 fontconfig
 
