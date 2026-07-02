@@ -13,13 +13,28 @@ warn() { echo -e "${YELLOW}[ WARN]${RESET} $*"; }
 err()  { echo -e "${RED}[ FAIL]${RESET} $*"; exit 1; }
 
 PROFILE_DIR="$(cd "$(dirname "$0")/hyprose" && pwd)"
-WORK_DIR="/tmp/hyprose-work"
+WORK_DIR="${HYPROSE_WORK_DIR:-/var/lib/hyprose-work}"
 OUT_DIR="$(cd "$(dirname "$0")" && pwd)/out"
 RELENG="/usr/share/archiso/configs/releng"
 
 [[ $EUID -ne 0 ]] && err "Run as root."
 command -v mkarchiso &>/dev/null || err "archiso not installed. Run: pacman -S archiso"
 [[ -d "$RELENG" ]] || err "releng profile not found at $RELENG — is archiso installed?"
+
+# -- Disk space preflight -----------------------------------------------------
+WORK_PARENT="$(dirname "$WORK_DIR")"
+mkdir -p "$WORK_PARENT"
+AVAIL_KB=$(df -Pk "$WORK_PARENT" | awk 'NR==2 {print $4}')
+AVAIL_GB=$(( AVAIL_KB / 1024 / 1024 ))
+if (( AVAIL_GB < 20 )); then
+    warn "Only ${AVAIL_GB}GB free at $WORK_PARENT — build needs ~20GB minimum."
+    warn "Clearing pacman package cache to free space..."
+    paccache -rk0 2>/dev/null || pacman -Scc --noconfirm
+    AVAIL_KB=$(df -Pk "$WORK_PARENT" | awk 'NR==2 {print $4}')
+    AVAIL_GB=$(( AVAIL_KB / 1024 / 1024 ))
+    (( AVAIL_GB < 20 )) && err "Still only ${AVAIL_GB}GB free after cache clear. Expand the VM disk or run: HYPROSE_WORK_DIR=/path/with/space ./build.sh"
+fi
+ok "Disk space OK: ${AVAIL_GB}GB free at $WORK_PARENT"
 
 echo -e "${PINK}${BOLD}"
 echo "  ============================================"
