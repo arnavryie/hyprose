@@ -101,16 +101,15 @@ pamixer
 playerctl
 cava
 
-# ── Graphics drivers ───────────────────────
-# Note: mesa-tkg-git from Chaotic AUR provides mesa functionality
-# Explicitly listed to handle libva-mesa-driver provider selection
-mesa-tkg-git
+# ── Graphics drivers (live session = mesa only; NVIDIA installed to target
+# by the installer in a later phase — do NOT add nvidia/lib32 here) ─────────
+mesa
+libva-mesa-driver
+mesa-vdpau
+vulkan-intel
+vulkan-radeon
 intel-media-driver
 libvdpau-va-gl
-nvidia
-nvidia-utils
-nvidia-settings
-lib32-nvidia-utils
 
 # ── Fonts ──────────────────────────────────
 noto-fonts
