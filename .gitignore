@@ -2,3 +2,7 @@ out/
 hyprose/airootfs/etc/skel/.config/
 hyprose/airootfs/etc/skel/.local/
 hyprose/airootfs/usr/share/hyprose/dots/
+hyprose/syslinux/
+hyprose/efiboot/
+hyprose/grub/
+

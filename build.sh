@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # build.sh — Hyprose ISO build wrapper
-# Usage: sudo ./build.sh [--clean]
+# Runs as root (CI container or `sudo ./build.sh` locally on Arch)
 
 set -euo pipefail
 
@@ -15,33 +15,48 @@ err()  { echo -e "${RED}[ FAIL]${RESET} $*"; exit 1; }
 PROFILE_DIR="$(cd "$(dirname "$0")/hyprose" && pwd)"
 WORK_DIR="/tmp/hyprose-work"
 OUT_DIR="$(cd "$(dirname "$0")" && pwd)/out"
-ARCHISO_VERSION=$(pacman -Q archiso 2>/dev/null | awk '{print $2}' || echo "unknown")
+RELENG="/usr/share/archiso/configs/releng"
 
-[[ $EUID -ne 0 ]] && err "Run as root: sudo ./build.sh"
-command -v mkarchiso &>/dev/null || err "archiso not installed. Run: sudo pacman -S archiso"
+[[ $EUID -ne 0 ]] && err "Run as root."
+command -v mkarchiso &>/dev/null || err "archiso not installed. Run: pacman -S archiso"
+[[ -d "$RELENG" ]] || err "releng profile not found at $RELENG — is archiso installed?"
 
-# ── Banner ─────────────────────────────────────────────────────────────────
-clear
 echo -e "${PINK}${BOLD}"
-echo "  ╔══════════════════════════════════════╗"
-echo "  ║     🌹 Hyprose ISO Builder           ║"
-echo "  ╚══════════════════════════════════════╝"
+echo "  ============================================"
+echo "       Hyprose ISO Builder"
+echo "  ============================================"
 echo -e "${RESET}"
-log "archiso version: $ARCHISO_VERSION"
 log "Profile: $PROFILE_DIR"
-log "Work dir: $WORK_DIR"
-log "Output: $OUT_DIR"
-echo ""
+log "Output:  $OUT_DIR"
 
-# ── Clean flag ─────────────────────────────────────────────────────────────
+# -- Clean flag --------------------------------------------------------------
 if [[ "${1:-}" == "--clean" ]]; then
     warn "Cleaning work directory..."
     rm -rf "$WORK_DIR"
     ok "Cleaned."
 fi
 
-# ── Vendor dots (skip with SKIP_VENDOR=1 if already done) ──────────────────
-if [[ "${SKIP_VENDOR:-0}" != "1" ]]; then
+# -- Vendor boot configs from official releng profile ------------------------
+# These MUST match the installed archiso version, so they are copied fresh
+# every build and never committed to the repo.
+log "Vendoring boot configs from releng..."
+for d in syslinux efiboot grub; do
+    if [[ -d "$RELENG/$d" ]]; then
+        rm -rf "${PROFILE_DIR:?}/$d"
+        cp -r "$RELENG/$d" "$PROFILE_DIR/$d"
+        ok "Copied $d/"
+    fi
+done
+
+# Rebrand boot menu text
+grep -rl "Arch Linux" "$PROFILE_DIR/syslinux" "$PROFILE_DIR/efiboot" "$PROFILE_DIR/grub" 2>/dev/null \
+    | xargs -r sed -i 's/Arch Linux/Hyprose Linux/g' || true
+ok "Boot menus rebranded to Hyprose."
+
+# -- Vendor dots (skipped if CI already did it) -------------------------------
+if [[ -d "$PROFILE_DIR/airootfs/etc/skel/.config" ]]; then
+    ok "Dots already vendored, skipping."
+else
     log "Vendoring hyprose-dots into airootfs..."
     rm -rf /tmp/hyprose-dots
     git clone --depth=1 --recurse-submodules \
@@ -53,45 +68,22 @@ if [[ "${SKIP_VENDOR:-0}" != "1" ]]; then
     ok "Dots vendored."
 fi
 
-# ── Create dirs ────────────────────────────────────────────────────────────
+# -- Build --------------------------------------------------------------------
 mkdir -p "$WORK_DIR" "$OUT_DIR"
-
-# ── Build ──────────────────────────────────────────────────────────────────
-log "Starting ISO build (this takes 20-60 minutes)..."
+log "Starting ISO build (20-60 minutes)..."
 START_TIME=$(date +%s)
 
-mkarchiso -v \
-    -w "$WORK_DIR" \
-    -o "$OUT_DIR" \
-    "$PROFILE_DIR" 2>&1 | tee /tmp/hyprose-build.log
+mkarchiso -v -w "$WORK_DIR" -o "$OUT_DIR" "$PROFILE_DIR"
 
-BUILD_EXIT=${PIPESTATUS[0]}
 END_TIME=$(date +%s)
 ELAPSED=$(( END_TIME - START_TIME ))
-ELAPSED_MIN=$(( ELAPSED / 60 ))
-ELAPSED_SEC=$(( ELAPSED % 60 ))
+ok "Build completed in $(( ELAPSED / 60 ))m $(( ELAPSED % 60 ))s"
 
-if [[ $BUILD_EXIT -ne 0 ]]; then
-    err "Build failed after ${ELAPSED_MIN}m ${ELAPSED_SEC}s. Check /tmp/hyprose-build.log"
-fi
-
-ok "Build completed in ${ELAPSED_MIN}m ${ELAPSED_SEC}s"
-
-# ── Find ISO + checksum ────────────────────────────────────────────────────
+# -- Checksum -----------------------------------------------------------------
 ISO_FILE=$(find "$OUT_DIR" -name "hyprose-*.iso" | sort | tail -1)
-if [[ -z "$ISO_FILE" ]]; then
-    err "ISO not found in $OUT_DIR"
-fi
+[[ -z "$ISO_FILE" ]] && err "ISO not found in $OUT_DIR"
 
-ISO_SIZE=$(du -sh "$ISO_FILE" | awk '{print $1}')
-log "Generating checksums..."
 sha256sum "$ISO_FILE" > "${ISO_FILE}.sha256"
-ok "SHA256: $(cat "${ISO_FILE}.sha256" | awk '{print $1}')"
-
-echo ""
-echo -e "${PINK}${BOLD}  ✓ ISO ready!${RESET}"
-echo -e "  File:  ${CYAN}$ISO_FILE${RESET}"
-echo -e "  Size:  ${ISO_SIZE}"
-echo -e "  Hash:  ${ISO_FILE}.sha256"
-echo ""
-echo -e "  ${YELLOW}Test with:${RESET} qemu-system-x86_64 -enable-kvm -m 4G -cdrom '$ISO_FILE' -boot d"
+ok "ISO:  $ISO_FILE"
+ok "Size: $(du -sh "$ISO_FILE" | awk '{print $1}')"
+ok "Hash: ${ISO_FILE}.sha256"

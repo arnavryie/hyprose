@@ -1,26 +1,33 @@
 name: Build Hyprose ISO
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - 'hyprose/**'
-      - 'build.sh'
-      - '.github/**'
-  workflow_dispatch:
 
 jobs:
   build:
+    name: Build ISO
     runs-on: ubuntu-latest
     container:
-      image: archlinux:latest
+      image: archlinux:base-devel
       options: --privileged
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Update system + install archiso
+      - name: Prepare pacman + Chaotic AUR keyring
+        run: |
+          pacman-key --init
+          pacman -Sy --noconfirm archlinux-keyring
+          pacman-key --populate archlinux
+          pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com
+          pacman-key --lsign-key 3056513887B78AEB
+          pacman -U --noconfirm \
+            'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst' \
+            'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst'
+
+      - name: Install build tools
         run: |
           pacman -Syu --noconfirm
           pacman -S --noconfirm archiso git rsync
@@ -37,20 +44,17 @@ jobs:
         run: |
           git clone --depth=1 --recurse-submodules \
             https://github.com/arnavryie/hyprose-dots.git /tmp/hyprose-dots
-          # User-facing dotfiles -> live user skeleton
           mkdir -p hyprose/airootfs/etc/skel
           rsync -a /tmp/hyprose-dots/dots/ hyprose/airootfs/etc/skel/
-          # Full repo copy -> for the installer + future first-boot venv setup
           mkdir -p hyprose/airootfs/usr/share/hyprose
           rsync -a --exclude='.git' /tmp/hyprose-dots/ hyprose/airootfs/usr/share/hyprose/dots/
 
       - name: Build ISO
+        env:
+          TERM: xterm
         run: |
           chmod +x build.sh
           ./build.sh
-        env:
-          SOURCE_DATE_EPOCH: ${{ github.event.repository.pushed_at }}
-          TERM: xterm
 
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v4
@@ -59,12 +63,5 @@ jobs:
           path: |
             out/*.iso
             out/*.sha256
+          if-no-files-found: error
           retention-days: 7
-
-      - name: Create Release (on tag)
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            out/*.iso
-            out/*.sha256

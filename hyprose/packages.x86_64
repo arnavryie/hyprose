@@ -18,6 +18,9 @@ dhcpcd
 
 # ── Boot / install tooling ─────────────────
 syslinux
+memtest86+
+memtest86+-efi
+edk2-shell
 grub
 efibootmgr
 dosfstools
@@ -32,6 +35,10 @@ btrfs-progs
 e2fsprogs
 dialog
 libnewt
+
+# ── Chaotic AUR on installed systems ───────
+chaotic-keyring
+chaotic-mirrorlist
 
 # ── Hyprland core ──────────────────────────
 hyprland
