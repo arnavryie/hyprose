@@ -73,7 +73,7 @@ mkdir -p "$WORK_DIR" "$OUT_DIR"
 log "Starting ISO build (20-60 minutes)..."
 START_TIME=$(date +%s)
 
-mkarchiso -v -w "$WORK_DIR" -o "$OUT_DIR" "$PROFILE_DIR"
+mkarchiso -v -w "$WORK_DIR" -o "$OUT_DIR" -m iso "$PROFILE_DIR"
 
 END_TIME=$(date +%s)
 ELAPSED=$(( END_TIME - START_TIME ))
