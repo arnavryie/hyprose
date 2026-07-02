@@ -66,13 +66,13 @@ wl-clipboard
 cliphist
 
 # ── Quickshell rice stack (the shell itself — NEVER remove) ─
-quickshell-git
+# CONFLICT 2026-07-02: quickshell-git
 matugen
 fuzzel
 wlogout
 qt5-wayland
 qt6-5compat
-qt6-avif-image-plugin
+# CONFLICT 2026-07-02: qt6-avif-image-plugin
 qt6-imageformats
 qt6-multimedia
 qt6-positioning
@@ -121,8 +121,8 @@ systemsettings
 bluedevil
 polkit-kde-agent
 breeze
-breeze-plus
-darkly-bin
+# CONFLICT 2026-07-02: breeze-plus
+# CONFLICT 2026-07-02: darkly-bin
 adw-gtk-theme
 
 # ── Audio ──────────────────────────────────
