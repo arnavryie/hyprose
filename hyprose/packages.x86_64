@@ -127,10 +127,8 @@ playerctl
 cava
 
 # ── Graphics drivers ───────────────────────
-mesa
-mesa-vdpau
-vulkan-intel
-vulkan-radeon
+# Note: mesa-tkg-git from Chaotic AUR provides mesa
+# Removed mesa, vulkan-intel, vulkan-radeon to avoid conflicts
 intel-media-driver
 libvdpau-va-gl
 nvidia
