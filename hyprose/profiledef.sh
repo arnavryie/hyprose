@@ -9,12 +9,18 @@ iso_version="$(date --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y.%m.%d)"
 install_dir="arch"
 buildmodes=('iso')
 
+# Initialize bootmodes as an empty array with a default fallback
+bootmodes=()
+
 # Boot modes are read from the installed archiso's official releng profile so they
 # always match the archiso version doing the build. Falls back to a static list.
 _releng_profiledef="/usr/share/archiso/configs/releng/profiledef.sh"
 if [[ -r "$_releng_profiledef" ]]; then
     mapfile -t bootmodes < <(bash -c "source '$_releng_profiledef' >/dev/null 2>&1; printf '%s\n' \"\${bootmodes[@]}\"")
-else
+fi
+
+# Only set defaults if bootmodes is still empty
+if (( ${#bootmodes[@]} == 0 )); then
     bootmodes=(
         'bios.syslinux.mbr'
         'bios.syslinux.eltorito'
