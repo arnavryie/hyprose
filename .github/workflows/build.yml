@@ -6,6 +6,7 @@ on:
     paths:
       - 'hyprose/**'
       - 'build.sh'
+      - '.github/**'
   workflow_dispatch:
 
 jobs:
