@@ -60,12 +60,10 @@ wl-clipboard
 cliphist
 
 # ── Quickshell rice stack (the shell itself) ─
-quickshell-git
 matugen
 fuzzel
 wlogout
 qt6-5compat
-qt6-avif-image-plugin
 qt6-imageformats
 qt6-multimedia
 qt6-positioning
@@ -115,8 +113,6 @@ systemsettings
 bluedevil
 polkit-kde-agent
 breeze
-breeze-plus
-darkly-bin
 adw-gtk-theme
 
 # ── Audio ──────────────────────────────────
@@ -132,7 +128,6 @@ cava
 
 # ── Graphics drivers ───────────────────────
 mesa
-libva-mesa-driver
 mesa-vdpau
 vulkan-intel
 vulkan-radeon
@@ -149,9 +144,7 @@ noto-fonts-cjk
 noto-fonts-emoji
 ttf-jetbrains-mono-nerd
 ttf-material-symbols-variable-git
-ttf-rubik-vf
 ttf-readex-pro
-otf-space-grotesk
 ttf-twemoji
 fontconfig
 
